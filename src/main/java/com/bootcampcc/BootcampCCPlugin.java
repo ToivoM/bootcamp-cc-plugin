@@ -1,11 +1,7 @@
 package com.bootcampcc;
 
 import com.google.inject.Provides;
-import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -34,6 +30,7 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ColorUtil;
+import net.runelite.client.util.ImageUtil;
 import okhttp3.Request;
 
 /**
@@ -147,7 +144,7 @@ public class BootcampCCPlugin extends Plugin
 		eventsPanel.setOnOpen(() -> executor.execute(eventsSync::refresh));
 		eventsButton = NavigationButton.builder()
 			.tooltip("Bootcamp CC events")
-			.icon(placeholderIcon())
+			.icon(ImageUtil.loadImageResource(BootcampCCPlugin.class, "nav_icon.png"))
 			.priority(8)
 			.panel(eventsPanel)
 			.build();
@@ -478,35 +475,6 @@ public class BootcampCCPlugin extends Plugin
 		{
 			return null;
 		}
-	}
-
-	/** Temporary 16x16 sidebar icon (a small calendar) until the real icon is made. */
-	private static BufferedImage placeholderIcon()
-	{
-		BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g = image.createGraphics();
-		try
-		{
-			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			g.setColor(new Color(0xDD, 0xDD, 0xDD));
-			g.fillRoundRect(1, 2, 14, 13, 3, 3);
-			g.setColor(BRAND_COLOR);
-			g.fillRect(1, 2, 14, 4);
-			g.setColor(new Color(0x55, 0x55, 0x55));
-			g.setStroke(new BasicStroke(1f));
-			for (int x = 4; x <= 11; x += 3)
-			{
-				for (int y = 8; y <= 12; y += 3)
-				{
-					g.fillRect(x, y, 2, 2);
-				}
-			}
-		}
-		finally
-		{
-			g.dispose();
-		}
-		return image;
 	}
 
 	/** StoredState backed by the RS profile configuration of the logged-in account. */

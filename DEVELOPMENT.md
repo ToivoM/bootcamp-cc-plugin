@@ -116,3 +116,25 @@ Notes:
   explain them in the PR.
 - `runelite-plugin.properties` (`displayName`, `description`, `tags`) is what players see in the
   Plugin Hub list.
+
+## Icons
+
+`assets/bootcamp-logo.png` is the source logo (not packaged). The icons are generated from it by
+`tools/generate_icons.py`, in its own virtualenv (Pillow and NumPy are not plugin dependencies):
+
+```sh
+python3 -m venv tools/.venv && tools/.venv/bin/pip install -r tools/requirements.txt
+tools/.venv/bin/python tools/generate_icons.py            # candidates and previews in tools/preview/ (git-ignored)
+tools/.venv/bin/python tools/generate_icons.py --install  # writes the icons chosen in CHOSEN
+```
+
+| File | Size | What |
+|------|------|------|
+| `icon.png` | 48 x 40 | Plugin Hub icon: the boots at 2x |
+| `src/main/resources/com/bootcampcc/nav_icon.png` | 16 x 16 | Sidebar button: a "B" in the logo's lettering style |
+| `src/main/resources/com/bootcampcc/overlay_logo.png` | 48 x 40 | Broadcast overlay logo: the boots at 2x, drawn 1:1 |
+
+The logo is pixel art on two grids (boots: 25 px cells, text: about 6.44 px cells); each part is reduced to its
+own grid and only enlarged by whole numbers with nearest neighbour, so edges stay sharp. The text in the logo
+hides the bottom of the boots; the script completes it from what shows between the letters and marks the few
+hand-drawn cells in `tools/preview/boots_completion_marked_x8.png`. The module docstring has the details.

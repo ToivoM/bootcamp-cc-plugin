@@ -9,6 +9,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.Collection;
 import java.util.List;
 import javax.inject.Inject;
@@ -19,17 +20,18 @@ import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.ComponentConstants;
+import net.runelite.client.util.ImageUtil;
 
 /**
- * Shows broadcasts above the chatbox, one at a time: title, wrapped text, a queue counter (1/3), a thin bar
- * for the time left and a close button (X).
+ * Shows broadcasts above the chatbox, one at a time: the clan logo on the left, then the title, wrapped text,
+ * a queue counter (1/3), a thin bar for the time left and a close button (X). See {@link OverlayLayout}.
  *
  * <p>No right-click menu. Only a left click on the X is consumed; every other click goes to the game.
  */
 class BroadcastOverlay extends Overlay
 {
 	private static final int WIDTH = 360;
-	private static final int PADDING = 6;
+	private static final int PADDING = OverlayLayout.PADDING;
 	private static final int CLOSE_SIZE = 9;
 	private static final int MAX_LINES = 8;
 	private static final Color BACKGROUND = ComponentConstants.STANDARD_BACKGROUND_COLOR;
@@ -39,6 +41,8 @@ class BroadcastOverlay extends Overlay
 	private static final Color CLOSE_HOVER = new Color(0xFF, 0x60, 0x60);
 
 	private final BootcampCCConfig config;
+	/** The boots logo, 48 x 40 (already scaled 2x with nearest neighbour). Loaded once; drawn 1:1. */
+	private final BufferedImage logo;
 	private final BroadcastQueue queue = new BroadcastQueue();
 
 	/** Close button in overlay-local coordinates; null while nothing is shown. Written on the client thread. */
@@ -97,6 +101,7 @@ class BroadcastOverlay extends Overlay
 	BroadcastOverlay(BootcampCCConfig config)
 	{
 		this.config = config;
+		this.logo = ImageUtil.loadImageResource(BroadcastOverlay.class, "overlay_logo.png");
 		setPosition(OverlayPosition.ABOVE_CHATBOX_RIGHT);
 		setLayer(OverlayLayer.ABOVE_WIDGETS);
 		setPriority(PRIORITY_HIGH);
@@ -137,10 +142,12 @@ class BroadcastOverlay extends Overlay
 		FontMetrics titleFm = g.getFontMetrics(titleFont);
 		FontMetrics textFm = g.getFontMetrics(textFont);
 
-		int innerWidth = WIDTH - 2 * PADDING;
-		List<String> lines = TextWrap.wrap(shown.getText(), textFm::stringWidth, innerWidth, MAX_LINES);
+		List<String> lines = TextWrap.wrap(shown.getText(), textFm::stringWidth,
+			OverlayLayout.textWidth(WIDTH, logo.getWidth()), MAX_LINES);
 		int headerHeight = Math.max(titleFm.getHeight(), CLOSE_SIZE);
-		int height = PADDING + headerHeight + 2 + lines.size() * textFm.getHeight() + PADDING + 2;
+		OverlayLayout layout = OverlayLayout.of(WIDTH, logo.getWidth(), logo.getHeight(), headerHeight,
+			lines.size(), textFm.getHeight());
+		int height = layout.getHeight();
 
 		// Background
 		g.setColor(BACKGROUND);
@@ -148,12 +155,10 @@ class BroadcastOverlay extends Overlay
 		g.setColor(BORDER);
 		g.drawRect(0, 0, WIDTH - 1, height - 1);
 
-		// Header: [Bootcamp CC]            1/3  X
-		int baseline = PADDING + titleFm.getAscent();
-		g.setFont(titleFont);
-		g.setColor(BootcampCCPlugin.BRAND_COLOR);
-		g.drawString(BootcampCCPlugin.PREFIX, PADDING, baseline);
+		// Logo, drawn 1:1 (no scaling, so the pixel art stays sharp)
+		g.drawImage(logo, layout.getLogoX(), layout.getLogoY(), null);
 
+		// Close button: always in the top right corner
 		Rectangle close = new Rectangle(WIDTH - PADDING - CLOSE_SIZE, PADDING + (headerHeight - CLOSE_SIZE) / 2, CLOSE_SIZE, CLOSE_SIZE);
 		g.setColor(hoveringClose ? CLOSE_HOVER : MUTED);
 		g.setStroke(new BasicStroke(2f));
@@ -162,6 +167,11 @@ class BroadcastOverlay extends Overlay
 		// Slightly larger hit area than the drawn X.
 		closeBounds = new Rectangle(close.x - 4, close.y - 4, close.width + 8, close.height + 8);
 
+		// Header: [Bootcamp CC]            1/3
+		int baseline = layout.getTextTop() + titleFm.getAscent();
+		g.setFont(titleFont);
+		g.setColor(BootcampCCPlugin.BRAND_COLOR);
+		g.drawString(BootcampCCPlugin.PREFIX, layout.getTextX(), baseline);
 		if (shown.getTotal() > 1)
 		{
 			String counter = shown.getIndex() + "/" + shown.getTotal();
@@ -173,17 +183,17 @@ class BroadcastOverlay extends Overlay
 		// Message
 		g.setFont(textFont);
 		g.setColor(TEXT);
-		int y = PADDING + headerHeight + 2 + textFm.getAscent();
+		int y = layout.getTextTop() + headerHeight + OverlayLayout.HEADER_GAP + textFm.getAscent();
 		for (String line : lines)
 		{
-			g.drawString(line, PADDING, y);
+			g.drawString(line, layout.getTextX(), y);
 			y += textFm.getHeight();
 		}
 
 		// Time left
 		int barWidth = (int) ((WIDTH - 2) * shown.getRemainingMillis() / durationMillis);
 		g.setColor(BootcampCCPlugin.BRAND_COLOR);
-		g.fillRect(1, height - 3, barWidth, 2);
+		g.fillRect(1, height - 3, barWidth, OverlayLayout.BAR_HEIGHT);
 
 		return new Dimension(WIDTH, height);
 	}

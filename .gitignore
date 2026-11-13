@@ -8,3 +8,7 @@ nbactions.xml
 nb-configuration.xml
 nbproject/
 *.class
+# Icon tools: virtualenv and generated previews
+tools/.venv/
+tools/preview/
+__pycache__/
