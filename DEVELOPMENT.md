@@ -34,9 +34,12 @@ Sources (check them again when in doubt, they change):
 
 - [ ] Only the player's **own** data. Never collect or send data about other players (names, locations,
       gear, ...), and never expose player information over HTTP.
-- [ ] Every feature that talks to a server is **opt-in**: a `@ConfigItem` toggle that is off by default and
-      has this warning:
+- [ ] Every feature that talks to a server is **opt-in**, and the setting that turns it on carries this warning:
       `"This feature submits your IP address to a 3rd-party server not controlled or verified by RuneLite developers"`
+      In this plugin the opt-in is **linking**: the Link code setting has the warning, and nothing at all is
+      sent before the player enters a code. Features that only use the link (broadcasts, events) may be on by
+      default because they do nothing until then. A feature that sends anything new (more than the RSN at
+      linking) needs its own off-by-default toggle with the warning.
 - [ ] The README says what the feature sends and when.
 
 ### Game interaction
