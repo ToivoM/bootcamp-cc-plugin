@@ -38,8 +38,9 @@ Linking is per RuneScape account: link each of your accounts separately. Linking
 - Older ones (for example sent while you were offline) are shown in the chatbox only, with their age:
   `[Bootcamp CC] (3 h ago) message`. At most the 5 newest are listed, with `+ N older broadcasts` before
   them. Broadcasts older than 24 hours are never shown.
-- If an admin retracts a broadcast, it is removed from the box (or the box closes if it is showing). A line
-  already in the chatbox stays.
+- An admin can stop delivery of a broadcast. Players who have not received it yet will not get it, and if it
+  is waiting in the box or showing there, it is removed or the box closes. A line already in the chatbox
+  stays.
 - The box has no right-click menu, and only a left click on its X is used by the plugin; every other click
   goes to the game.
 
@@ -65,6 +66,8 @@ server sees your **IP address**.
   list at login, when it changes, when you open the panel and every 5 minutes (and checks the list's version
   every 60 seconds if the open request is failing). These requests send the token and at most two numbers
   (the newest broadcast and the event list version you have), nothing else.
+- The server records which broadcasts were delivered to your linked account, so admins can see how many
+  players a broadcast reached.
 - The plugin never sends anything about other players, your gameplay, your chat or your location.
 
 To stop all requests, turn off Receive broadcasts and the events panel, or disable the plugin. Changing the
